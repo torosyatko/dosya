@@ -1,0 +1,9 @@
+requests[socks]
+stem
+fake-useragent
+python-dotenv
+aiohttp
+aiohttp-socks
+aiosignal
+async-timeout
+uvloop

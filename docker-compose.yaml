@@ -1,0 +1,25 @@
+version: "3.0"
+services:
+    torserv:
+        build:
+            context: .
+            dockerfile: TorDockerfile
+        env_file:
+          - ".env"
+        environment:
+            - C_FORCE_ROOT=1
+        ports:
+          - '127.0.0.1:9050:9050'
+          - '127.0.0.1:9051:9051'
+    torosya:
+        build:
+          context: .
+          dockerfile: Dockerfile
+        env_file:
+          - ".env"
+        environment:
+          - TOR_SERVER_HOST=torserv
+        volumes:
+          - "./data:/app/data"
+        depends_on:
+          - torserv
