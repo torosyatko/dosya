@@ -40,9 +40,9 @@ sudo docker-compose up
 ```shell
 cd dosya
 git pull
-docker-compose build --no-cache torosya
-docker-compose stop torosya
-docker-compose up torosya
+sudo docker-compose build --no-cache torosya
+sudo docker-compose stop
+sudo docker-compose up
 ```
 
 
