@@ -39,7 +39,7 @@ async def renew_connection(sleep_min=5, infinity=True):
         await asyncio.sleep(sleep_min * 60)
 
 
-def load_from_file(link: str) -> list[str]:
+async def load_from_file(link: str) -> list[str]:
     return [s.strip() for s in open(os.getenv('TARGET_LINKS')).readlines() if s.strip()[:4] == 'http']
 
 
@@ -53,7 +53,11 @@ async def load_from_link(link: str) -> list[str]:
 
 
 async def load_links(link: str) -> list[str]:
-    return load_from_link(link) if link[:4] == 'http' else load_from_file(link)
+    if link[:4] == 'http':
+        ret = await load_from_link(link)
+    else:
+        ret = await load_from_file(link)
+    return ret
 
 
 async def reload_target(sleep_min=10):

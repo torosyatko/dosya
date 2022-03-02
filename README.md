@@ -33,4 +33,17 @@ sudo docker-compose up
 С начала пробежит установка всего необходимого а потом зупустится ддос.
 
 
+
+## Обновление. 
+
+Если хотите обновить то выполните следующее после входа в систему.
+```shell
+cd dosya
+git pull
+docker-compose build --no-cache torosya
+docker-compose stop torosya
+docker-compose up torosya
+```
+
+
 Предложения по улучшению: https://t.me/svyatkss

@@ -20,3 +20,7 @@ services:
           - "./data:/app/data"
         depends_on:
           - torserv
+        ulimits:
+          nofile:
+            soft: "65536"
+            hard: "65536"
