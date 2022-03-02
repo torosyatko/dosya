@@ -34,9 +34,12 @@ async def renew_connection(sleep_min=5, infinity=True):
             controller.authenticate(password=os.getenv("TOR_PASS"))
             controller.signal(Signal.NEWNYM)
         td = TorDosya()
-        ip = await td.myip()
-        print(f"Поточний IP: {ip}")
-        await asyncio.sleep(sleep_min * 60)
+        country_code = await td.myip()
+        print(f"Країна: {country_code}")
+        if country_code in os.getenv('SOCKS_INTERESTING'):
+            await asyncio.sleep(int(os.getenv('SOCKS_INTERESTING_SLEEP_MIN')) * 60)
+        else:
+            await asyncio.sleep(sleep_min*60)
 
 
 async def load_from_file(link: str) -> list[str]:
@@ -91,6 +94,7 @@ class TorDosya():
             while not DESTINATIONS:
                 sleep = int(os.getenv('TAGET_LINK_UPDATE_MIN'))
                 await asyncio.sleep(sleep*60 + 30) # sleep
+                print("sleep")
             for link in DESTINATIONS:
                 async with aiohttp.ClientSession(connector=self.sock_connector, timeout=self.timeout) as session:
                     session.headers['user-agent'] = ua
@@ -107,9 +111,9 @@ class TorDosya():
     async def myip(self):
         try:
             async with aiohttp.ClientSession(connector=self.sock_connector, timeout=self.timeout) as session:
-                async with session.get("http://httpbin.org/ip") as response:
+                async with session.get("http://ip-api.com/json/?fields=countryCode") as response:
                     data = await response.json()
-                    return data.get('origin')
+                    return data.get('countryCode', '-')
         except Exception:
             pass
         return "Сервіс перевірки IP наразі недоступний."
