@@ -96,7 +96,6 @@ class TorDosya():
                     except:
                         pass
                     BAD_REQ += 1
-                await asyncio.sleep(1)
 
     async def myip(self):
         try:
