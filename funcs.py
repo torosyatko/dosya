@@ -111,4 +111,4 @@ class TorDosya():
 async def statistic_info():
     while True:
         print(f"Усього запитів: {TOTAL_REQ}\tвідповідь є: {OK_REQ}\tне відповідає: {BAD_REQ}")
-        await asyncio.sleep(int(os.getenv('STATS_MIN_UPDATE')) * 20)
+        await asyncio.sleep(int(os.getenv('STATS_MIN_UPDATE')) * 60)

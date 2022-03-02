@@ -8,9 +8,6 @@ services:
           - ".env"
         environment:
             - C_FORCE_ROOT=1
-        ports:
-          - '127.0.0.1:9050:9050'
-          - '127.0.0.1:9051:9051'
     torosya:
         build:
           context: .
