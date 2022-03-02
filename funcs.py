@@ -94,7 +94,6 @@ class TorDosya():
             while not DESTINATIONS:
                 sleep = int(os.getenv('TAGET_LINK_UPDATE_MIN'))
                 await asyncio.sleep(sleep*60 + 30) # sleep
-                print("sleep")
             for link in DESTINATIONS:
                 async with aiohttp.ClientSession(connector=self.sock_connector, timeout=self.timeout) as session:
                     session.headers['user-agent'] = ua
