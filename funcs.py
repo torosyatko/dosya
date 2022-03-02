@@ -49,7 +49,7 @@ async def load_from_link(link: str) -> list[str]:
             txt = await result.text()
             return [s.strip() for s in txt.split("\n") if s and s.strip()[:4] == 'http']
 
-    return DESTINATIONS
+    return []
 
 
 async def load_links(link: str) -> list[str]:
@@ -88,6 +88,9 @@ class TorDosya():
         global TOTAL_REQ, BAD_REQ, OK_REQ
         while True:
             ua = USER_AGENT.random
+            while not DESTINATIONS:
+                sleep = int(os.getenv('TAGET_LINK_UPDATE_MIN'))
+                await asyncio.sleep(sleep*60 + 30) # sleep
             for link in DESTINATIONS:
                 async with aiohttp.ClientSession(connector=self.sock_connector, timeout=self.timeout) as session:
                     session.headers['user-agent'] = ua
