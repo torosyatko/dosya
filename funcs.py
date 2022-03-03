@@ -2,7 +2,6 @@ import asyncio
 import os
 import socket
 import time
-import traceback
 
 import aiohttp
 from aiohttp_socks import SocksConnector
@@ -11,7 +10,9 @@ from stem import Signal
 from stem.control import Controller
 
 TOTAL_REQ, OK_REQ, BAD_REQ = 0, 0, 0
+CURRENT_COUNTRY = '-'
 load_dotenv()
+DESTINATIONS = []
 
 TOR_HOST = socket.gethostbyname(os.getenv('TOR_SERVER_HOST'))
 while True:
@@ -24,22 +25,20 @@ while True:
     except:
         time.sleep(1)
 
-DESTINATIONS = ['http://www.fsb.ru/']
-
 
 async def renew_connection(sleep_min=5, infinity=True):
+    global CURRENT_COUNTRY
     """Send reload sygnal every X min"""
     while infinity:
         with Controller.from_port(address=TOR_HOST, port=9051) as controller:
             controller.authenticate(password=os.getenv("TOR_PASS"))
             controller.signal(Signal.NEWNYM)
         td = TorDosya()
-        country_code = await td.myip()
-        print(f"Країна: {country_code}")
+        country_code = CURRENT_COUNTRY = await td.myip()
         if country_code in os.getenv('SOCKS_INTERESTING'):
             await asyncio.sleep(int(os.getenv('SOCKS_INTERESTING_SLEEP_MIN')) * 60)
         else:
-            await asyncio.sleep(sleep_min*60)
+            await asyncio.sleep(sleep_min * 60)
 
 
 async def load_from_file(link: str) -> list[str]:
@@ -69,7 +68,6 @@ async def reload_target(sleep_min=10):
         try:
             new_target = await load_links(os.getenv('TARGET_LINKS'))
             if set(new_target) != set(DESTINATIONS):
-                print("Встановлюю нові цілі", new_target)
                 DESTINATIONS = new_target[:]
         except Exception:
             raise Exception("Не можу завантажити цілі!")
@@ -93,7 +91,8 @@ class TorDosya():
             ua = USER_AGENT.random
             while not DESTINATIONS:
                 sleep = int(os.getenv('TAGET_LINK_UPDATE_MIN'))
-                await asyncio.sleep(sleep*60 + 30) # sleep
+                await asyncio.sleep(sleep * 60 + 30)  # sleep
+
             for link in DESTINATIONS:
                 async with aiohttp.ClientSession(connector=self.sock_connector, timeout=self.timeout) as session:
                     session.headers['user-agent'] = ua
@@ -115,7 +114,7 @@ class TorDosya():
                     return data.get('countryCode', '-')
         except Exception:
             pass
-        return "Сервіс перевірки IP наразі недоступний."
+        return "-"
 
 
 async def statistic_info():
