@@ -41,22 +41,30 @@ async def renew_connection(sleep_min=5, infinity=True):
             await asyncio.sleep(sleep_min * 60)
 
 
-async def load_from_file(link: str) -> list[str]:
-    return [s.strip() for s in open(os.getenv('TARGET_LINKS')).readlines() if s.strip()[:4] == 'http']
+async def load_from_file(link: str) -> list[tuple[str, dict]]:
+    return [(s.strip(), {}) for s in open(os.getenv('TARGET_LINKS')).readlines() if s.strip()[:4] == 'http']
 
 
-async def load_from_link(link: str) -> list[str]:
+async def load_from_link(link: str) -> list[tuple[str, dict]]:
     async with aiohttp.ClientSession() as session:
         async with session.get(link) as result:
             txt = await result.text()
-            return [s.strip() for s in txt.split("\n") if s and s.strip()[:4] == 'http']
+            ret = []
+            for line in txt.split("\n"):
+                link, *params = line.split("+")
+                ret.append(
+                    (link.strip(), {s.split(':')[0].strip():s.split(':')[1].strip() for s in params})
+                )
+            return ret
 
     return []
 
 
-async def load_links(link: str) -> list[str]:
+async def load_links(link: str) -> list[tuple[str, dict]]:
     if link[:4] == 'http':
-        ret = await load_from_link(link)
+        ret = []
+        for lnk in link.split(","):
+            ret.extend(await load_from_link(lnk))
     else:
         ret = await load_from_file(link)
     return ret
@@ -67,9 +75,11 @@ async def reload_target(sleep_min=10):
     while True:
         try:
             new_target = await load_links(os.getenv('TARGET_LINKS'))
-            if set(new_target) != set(DESTINATIONS):
+            if {a for a,_ in new_target} != {a for a, _ in DESTINATIONS}:
+                print("встановлюю нові цілі", new_target)
                 DESTINATIONS = new_target[:]
-        except Exception:
+        except Exception as e:
+            print(e)
             raise Exception("Не можу завантажити цілі!")
 
         await asyncio.sleep(sleep_min * 60)
@@ -93,9 +103,10 @@ class TorDosya():
                 sleep = int(os.getenv('TAGET_LINK_UPDATE_MIN'))
                 await asyncio.sleep(sleep * 60 + 30)  # sleep
 
-            for link in DESTINATIONS:
+            for link, params in DESTINATIONS:
                 async with aiohttp.ClientSession(connector=self.sock_connector, timeout=self.timeout) as session:
                     session.headers['user-agent'] = ua
+                    session.headers.update(params)
                     TOTAL_REQ += 1
                     try:
                         async with session.get(link) as response:

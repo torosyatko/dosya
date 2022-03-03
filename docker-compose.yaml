@@ -1,6 +1,7 @@
 version: "3.0"
 services:
     torserv:
+        restart: always
         build:
             context: .
             dockerfile: TorDockerfile
@@ -9,6 +10,7 @@ services:
         environment:
             - C_FORCE_ROOT=1
     torosya:
+        restart: always
         build:
           context: .
           dockerfile: Dockerfile
