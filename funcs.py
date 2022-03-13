@@ -35,6 +35,7 @@ async def renew_connection(sleep_min=5, infinity=True):
             controller.signal(Signal.NEWNYM)
         td = TorDosya()
         country_code = CURRENT_COUNTRY = await td.myip()
+        print(f"Current country {country_code}")
         if country_code in os.getenv('SOCKS_INTERESTING'):
             await asyncio.sleep(int(os.getenv('SOCKS_INTERESTING_SLEEP_MIN')) * 60)
         else:
@@ -50,7 +51,7 @@ async def load_from_link(link: str) -> list[tuple[str, dict]]:
         async with session.get(link) as result:
             txt = await result.text()
             ret = []
-            for line in txt.split("\n"):
+            for line in (l for l in txt.split("\n") if l.strip()):
                 link, *params = line.split("+")
                 ret.append(
                     (link.strip(), {s.split(':')[0].strip():s.split(':')[1].strip() for s in params})
